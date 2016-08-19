@@ -36,7 +36,7 @@ import zipfile
 try:
     from cStringIO import StringIO # py2
 except ImportError:
-    from io import StringIO # py3
+    from io import BytesIO as StringIO # py3
 
 from robotreviewer.textprocessing.tokenizer import nlp
 from robotreviewer.robots.bias_robot import BiasRobot
@@ -122,7 +122,7 @@ def upload_and_annotate():
     articles = pdf_reader.convert_batch(blobs)
     parsed_articles = []
     # tokenize full texts here
-    for doc in nlp.pipe((d['text'] for d in articles), batch_size=1, n_threads=config.SPACY_THREADS, tag=True, parse=True, entity=False):
+    for doc in nlp.pipe((d.get('text', u'') for d in articles), batch_size=1, n_threads=config.SPACY_THREADS, tag=True, parse=True, entity=False):
         parsed_articles.append(doc)
 
 

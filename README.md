@@ -70,14 +70,16 @@ A BibTeX entry for LaTeX users is
 
 ```bash
 conda config --add channels spacy  # only needed once
-conda install flask numpy scipy scikit-learn spacy
-pip install fuzzywuzzy # (this is not yet in the anaconda repo)
+conda install flask flask-wtf numpy scipy scikit-learn spacy
+pip install fuzzywuzzy python-Levenshtein # (this is not yet in the anaconda repo)
+pip install apscheduler # optional, for scheduled database cleanups
 ```
 
     b. For everyone else:
 
 ```bash
-pip install flask numpy scipy scikit-learn spacy fuzzywuzzy
+pip install flask flask-wtf numpy scipy scikit-learn spacy fuzzywuzzy python-Levenshtein
+pip install apscheduler # optional, for scheduled database cleanups
 ```
 
 5. Install the sentence processing data:

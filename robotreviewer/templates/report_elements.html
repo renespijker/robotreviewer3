@@ -1,3 +1,14 @@
+      <h3>Uploaded studies grouped by trial</h3>
+
+      {% for id_file in group_by_reg_ids(articles) %}
+      <h4>Trial {{ loop.index }}, ({{ id_file[0]|join(', ') if id_file[0] else 'no registry ids found'}})</h4>
+       <ol>
+          {% for fn in id_file[1] %}
+            <li>{{ short_citation(articles[fn]) }}, [uploaded filename: {{ articles[fn]['filename'] }}</li>
+          {% endfor %}
+        </ol>
+      {% endfor %}
+
       <h2>Risk of bias table</h2>
 
       <table class='bias-table'>
@@ -22,7 +33,7 @@
           </a>
           {% endif %}
           </td>
-          {% for domain in study['bias'] %}
+          {% for domain in study.get('bias', []) %}
           <td class="{% if domain['judgement'] == 'low' %}risk-low{% elif domain['judgement'] == 'high/unclear' %}risk-high{% endif %}">{{ '+' if domain['judgement'] == 'low' else '?' }}</td>
           {% endfor %}
         </tr>
@@ -35,7 +46,7 @@
       <h3>{{ short_citation(study) }}</h3>
 
       <table class="char-pico-table">
-        {% for domain in study['pico_text'] %}
+        {% for domain in study.get('pico_text', []) %}
         <tr>
           <td>{{ domain['domain'] }}</td>
           <td>
@@ -59,7 +70,7 @@
           <th>Bias</th><th>Judgement</th>
           <th>Support for judgement</th>
         </tr>
-        {% for domain in study['bias'] %}
+        {% for domain in study.get('bias', []) %}
         <tr>
           <td>{{ domain['domain'] }}</td>
           <td>{{ domain['judgement'] }}</td>
@@ -83,5 +94,5 @@
       <h2>References</h2>
 
       {% for study in articles %}
-      <p>{{ loop.index }}. {{ long_citation(study) }}</p>
+      <p>{{ loop.index }}. {{ long_citation(study) }} PMID: {{ study.get('pmid', 'not found') }}</p>
       {% endfor %}

@@ -15,7 +15,7 @@ import xml.etree.cElementTree as ET
 try:
     from cStringIO import StringIO # py2
 except ImportError:
-    from io import StringIO # py3
+    from io import BytesIO as StringIO # py3
 
 try:
     import urlparse
@@ -75,6 +75,7 @@ class PdfReader():
         log.info('Attempting to start Grobid sever...')
         self.grobid_process = Grobid()
         log.info('Success! :)')
+        self.reg_ids_regex = re.compile(r"((?:ACTRN|CTRI\/|ChiCTR\-|DRKS|EUCTR|IRCT|ISRCTN|JPRN\-|KCT|NCT|RBR\-|RPCEC|TCTR)[0-9a-zA-z\-\/]+)")
 
     def connect(self):
         self.grobid_process.connect()
@@ -86,7 +87,11 @@ class PdfReader():
         """
         returns MultiDict containing document information
         """
-        out = self.parse_xml(self.run_grobid(pdf_binary))
+        try:
+            out = self.parse_xml(self.run_grobid(pdf_binary))
+        except Exception as e:
+            out = MultiDict() # return empty data if not possible to parse
+            log.error(u"Grobid hasn't worked! :(\n exception raised: {}".format(e))
         return out
 
     def convert_batch(self, pdf_binary_list, num_threads=None):
@@ -136,15 +141,18 @@ class PdfReader():
                     
                 path.pop()
 
-        output.grobid['text'] = '\n'.join(full_text_bits)
+        
+        output.grobid['text'] = u'\n'.join(full_text_bits)
         output.grobid['authors'] = author_list
+
+        output.grobid['registry'] = self.reg_ids_regex.findall(output.grobid['abstract']) + self.reg_ids_regex.findall(output.grobid['text'])
         # log.info('author list: %s' % author_list)
         
         return output
 
     def _extract_text(self, elem):
         # note the whitespace on the join here.
-        return ' '.join([s.decode("utf-8") for s in ET.tostringlist(
+        return u' '.join([s.decode("utf-8") for s in ET.tostringlist(
                         elem, method="text", encoding="utf-8") if s is not None]).strip() # don't ask...
 
 def main():

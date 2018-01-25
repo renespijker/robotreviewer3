@@ -36,6 +36,7 @@ import sys
 sys.path.append('robotreviewer/ml') # need this for loading the rationale_CNN module
 from robotreviewer.ml.rationale_CNN import RationaleCNN, Document
 
+from celery.contrib import rdb
 
 __version__ = {"name": "Risk of bias (CNN/SVM ensemble)",
                "version_number": "3",
@@ -136,7 +137,6 @@ class BiasRobot:
         sorted_indices = sorted(rank_scores_dict.items(), key=operator.itemgetter(1), reverse=True)
         return [index[0] for index in sorted_indices]
 
-        #return sorted_indices
 
     def annotate(self, data, top_k=None, threshold=0.5):
         """
@@ -178,8 +178,11 @@ class BiasRobot:
             bias_prob_CNN = None
             if domain in self.CNN_models:
                 model = self.CNN_models[domain]
-                doc = Document(doc_id=None, sentences=doc_sents) # vectorize document
-                bias_prob_CNN, high_prob_sent_indices_CNN = model.predict_and_rank_sentences_for_doc(doc, num_rationales=len(doc))
+                
+                doc = Document(doc_id=None, sentences=doc_sents) # make consumable for RA-CNN
+
+                # this never comes back
+                bias_prob_CNN, high_prob_sent_indices_CNN = model.predict_and_rank_sentences_for_doc(doc, num_rationales=len(doc), return_rationale_indices=True)
 
 
                 high_prob_sent_indices = self.simple_borda_count(high_prob_sent_indices_CNN,
@@ -204,6 +207,8 @@ class BiasRobot:
             # high_prob_sents_CNN = [doc_sents[i] for i in high_prob_sent_indices_CNN]
 
             # Find high probability sentences
+            #from celery.contrib import rdb
+            #rdb.set_trace()
             high_prob_sents = [doc_sents[i] for i in high_prob_sent_indices]
             high_prob_start_i = [doc_sent_start_i[i] for i in high_prob_sent_indices]
             high_prob_end_i = [doc_sent_end_i[i] for i in high_prob_sent_indices]
